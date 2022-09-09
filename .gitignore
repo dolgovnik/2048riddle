@@ -1,0 +1,8 @@
+__pycache__
+config.ini
+docker-compose.yaml
+.*.swp
+.*.swo
+certs/*.pem
+certs/*.key
+pgdata/pgdata*

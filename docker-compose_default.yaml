@@ -1,0 +1,40 @@
+#Fill this file and copy it to docker-compose.yaml before use
+version: "2.4"
+services:
+  postgres:
+    image: postgres:13.6-alpine
+    #synch this data with app/config.ini
+    environment:
+      POSTGRES_DB: #<postgres DB>
+      POSTGRES_USER: #<postgres DB user>
+      POSTGRES_PASSWORD: #<postgres DB password>
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data #keep DB data on volume
+    networks:
+      - 2048riddle_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U 2048riddle -d 2048riddle"]
+      interval: 90s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  bot:
+    build: .
+    ports:
+      - "8443:443"
+    #mount ssl config to nginx, genetare ceptificates and put it in certs directory
+    volumes:
+      - ./nginx_ssl.conf:/etc/nginx/conf.d/nginx_ssl.conf
+      - ./certs:/etc/nginx/certs
+    networks:
+      - 2048riddle_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  2048riddle_net:
+    driver: bridge
